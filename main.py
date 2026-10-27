@@ -43,7 +43,7 @@ def buscar_produto(nome):
         WHERE nome LIKE ?
     """, (f"%{nome}%",))
     resultado = cursor.fetchall()
-    if resultado is None:
+    if not resultado:
         print("Nenhum produto encontrado")
     else:
         for r in resultado:
@@ -145,9 +145,9 @@ def consultar_estoque_baixo():
         
 
 def relatorio_estoque():
-
+    # COALESCE está transformando null em zero
     cursor.execute("""
-        SELECT COUNT(id), SUM(quantidade), SUM(preco * quantidade)
+        SELECT COUNT(id), COALESCE(SUM(quantidade),0), COALESCE(SUM(preco * quantidade),0) 
         FROM produtos 
     """)
     resultado = cursor.fetchone()
@@ -172,5 +172,77 @@ def relatorio_estoque():
     prod_mais_caro = cursor.fetchall()
     for nome, preco in prod_mais_caro:
         print(f"Produto mais caro = {nome} ({preco:.2f} Reais)")
+
+# Interface terminal  
+
+while(True):
+    print("========== STOCKPY ==========")
+    print("1 - Cadastrar produto")
+    print("2 - Listar produtos")
+    print("3 - Buscar produto")
+    print("4 - Atualizar estoque")
+    print("5 - Excluir produto")
+    print("6 - Consultar estoque baixo")
+    print("7 - Relatório de estoque")
+    print("0 - Sair")
+    print("=============================")
+    print("\n")
+
+    resposta = input("Escolha uma opção: ")
+
+    match resposta:
+        case "0":
+            print("Programa encerrado")
+            break
+        case "1":
+            nome_produto = ""
+            while(nome_produto == ""):
+                nome_produto = input("Nome do produto: ").strip() # strip garante que espaços em brancos também seja considerado vazio
+            
+            categoria_produto = ""
+            while(categoria_produto == ""):
+                categoria_produto = input("Categoria do produto: ").strip()
+
+            preco_produto = -1
+            while(preco_produto < 0): 
+                preco_produto = float(input("Preço do produto: "))
+
+            quantidade_produto = -1
+            while(quantidade_produto < 0):
+                quantidade_produto = int(input("Quantide de produtos: "))
+
+            estoque_minimo_produto = -1
+            while(estoque_minimo_produto < 0):
+                estoque_minimo_produto = int(input("Estoque mínimo do produto: "))
+
+            cadastrar_produto(nome_produto, categoria_produto, preco_produto, quantidade_produto, estoque_minimo_produto)
+            print("Produto Cadastrado com Sucesso!")
+
+        case "2":
+            listar_todos_produtos()
+        case "3":
+            nome_produto = ""
+            while(nome_produto == ""):
+                nome_produto = input("Nome do produto: ").strip()
+            buscar_produto(nome_produto)
+        case "4":
+            id_produto = 0
+            while(id_produto < 1):
+                id_produto = int(input("Id do produto: "))
+            atualizar_estoque(id_produto)
+        case "5":
+            id_produto = 0
+            while(id_produto < 1):
+                id_produto = int(input("Id do produto: "))
+            excluir_produto(id_produto)
+        case "6":
+            consultar_estoque_baixo()
+        case "7":
+            relatorio_estoque()
+        case _: 
+            print("Opção inválida")
+
+conexao.close()
+
 
 
